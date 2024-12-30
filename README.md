@@ -284,7 +284,9 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
 
-## Deployment with Coolify
+## Deployment Options
+
+### Option 1: Docker Deployment
 
 This project includes Docker configuration for easy deployment with Coolify.
 
@@ -300,7 +302,7 @@ wedding-sample-animation/
     └── php.ini            # PHP configuration for production
 ```
 
-### Deployment Steps
+### Docker Deployment Steps
 
 1. Push your code to a Git repository
 
@@ -374,4 +376,107 @@ The Docker configuration is designed to be scalable:
 - Optimized for container orchestration
 - Ready for horizontal scaling
 
-For any deployment issues, check the Coolify logs and ensure all environment variables are properly configured.
+### Option 2: Nixpacks Deployment
+
+This project also supports deployment using Nixpacks, which provides a simpler deployment process with automatic dependency detection.
+
+### Nixpacks Configuration Files
+
+```
+wedding-sample-animation/
+├── nixpacks.toml          # Nixpacks build configuration
+└── docker/               # Shared configuration files
+    ├── nginx.conf        # Nginx web server configuration
+    ├── supervisord.conf  # Process management configuration
+    └── php.ini          # PHP configuration for production
+```
+
+### Nixpacks Deployment Steps
+
+1. Push your code to a Git repository
+
+2. In Coolify:
+   - Create a new service
+   - Select "Nixpacks" as deployment type
+   - Connect your Git repository
+   - Set the following configuration:
+     ```
+     Port: 80
+     Start Command: Already configured in nixpacks.toml
+     ```
+
+3. Environment Variables:
+   - Copy `.env.example` to `.env`
+   - Update the following variables:
+     ```
+     APP_ENV=production
+     APP_DEBUG=false
+     APP_URL=your-domain.com
+     
+     DB_CONNECTION=mysql
+     DB_HOST=your-db-host
+     DB_PORT=3306
+     DB_DATABASE=your-db-name
+     DB_USERNAME=your-username
+     DB_PASSWORD=your-password
+     ```
+
+4. Build and Deploy:
+   - Click "Deploy" in Coolify
+   - Nixpacks will automatically:
+     - Detect PHP and Node.js requirements
+     - Install all dependencies
+     - Build frontend assets
+     - Configure Nginx and PHP-FPM
+     - Set up process management
+
+### Nixpacks Build Process
+
+The Nixpacks configuration includes several phases:
+
+1. Setup Phase:
+   - Installs PHP 8.2 with required extensions
+   - Installs Node.js 18
+   - Sets up Nginx and Supervisor
+
+2. Install Phase:
+   - Installs Composer dependencies
+   - Installs NPM packages
+   - Builds frontend assets
+
+3. Setup Nginx Phase:
+   - Configures Nginx web server
+   - Sets up PHP-FPM
+   - Configures process management
+
+4. Setup Permissions Phase:
+   - Sets correct permissions for Laravel storage
+   - Ensures proper file ownership
+
+### Advantages of Nixpacks
+
+- Simpler deployment process
+- Automatic dependency detection
+- Consistent builds across environments
+- Smaller image sizes
+- Faster build times
+- Built-in caching
+- Zero-configuration option available
+
+### Monitoring and Logs
+
+Access logs through Coolify's dashboard:
+- Application logs
+- Nginx access and error logs
+- PHP-FPM logs
+- Build logs
+
+### Troubleshooting
+
+If you encounter issues:
+1. Check the build logs in Coolify
+2. Verify environment variables
+3. Ensure all required PHP extensions are listed in nixpacks.toml
+4. Check file permissions in the storage directory
+
+For more details on Nixpacks configuration options, visit the [Nixpacks documentation](https://nixpacks.com/docs).

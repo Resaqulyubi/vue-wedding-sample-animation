@@ -1,0 +1,25 @@
+[phases.setup]
+nixPkgs = ['php82', 'php82Extensions.pdo', 'php82Extensions.pdo_mysql', 'php82Extensions.zip', 'php82Extensions.gd', 'php82Extensions.intl', 'nodejs-18_x', 'nginx', 'supervisor']
+
+[phases.install]
+cmds = [
+    'composer install --no-dev --optimize-autoloader --no-interaction',
+    'npm ci',
+    'npm run build'
+]
+
+[phases.setup-nginx]
+cmds = [
+    'cp docker/nginx.conf /etc/nginx/http.d/default.conf',
+    'cp docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf',
+    'cp docker/php.ini /usr/local/etc/php/conf.d/custom.ini'
+]
+
+[phases.setup-permissions]
+cmds = [
+    'chmod -R 775 storage bootstrap/cache',
+    'chown -R www-data:www-data storage bootstrap/cache'
+]
+
+[start]
+cmd = '/usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf'
