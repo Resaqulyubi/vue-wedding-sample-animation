@@ -470,3 +470,80 @@ The application runs with:
 - Smaller image sizes
 - Faster build times
 - Built-in caching
+
+### Coolify Deployment Configuration
+
+#### Port Configuration
+```
+Ports Exposes: 9600
+Ports Mappings: 9600:9600
+```
+
+#### Container Labels for Traefik
+```
+traefik.enable=true
+traefik.http.middlewares.gzip.compress=true
+traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https
+
+# HTTP Router Configuration
+traefik.http.routers.http-0-awcc0ggoc088080gos4o04k8.entryPoints=http
+traefik.http.routers.http-0-awcc0ggoc088080gos4o04k8.middlewares=redirect-to-https
+traefik.http.routers.http-0-awcc0ggoc088080gos4o04k8.rule=Host(`wedding-kemash.nury.my.id`) && PathPrefix(`/`)
+traefik.http.routers.http-0-awcc0ggoc088080gos4o04k8.service=http-0-awcc0ggoc088080gos4o04k8
+
+# HTTPS Router Configuration
+traefik.http.routers.https-0-awcc0ggoc088080gos4o04k8.entryPoints=https
+traefik.http.routers.https-0-awcc0ggoc088080gos4o04k8.middlewares=gzip
+traefik.http.routers.https-0-awcc0ggoc088080gos4o04k8.rule=Host(`wedding-kemash.nury.my.id`) && PathPrefix(`/`)
+traefik.http.routers.https-0-awcc0ggoc088080gos4o04k8.service=https-0-awcc0ggoc088080gos4o04k8
+traefik.http.routers.https-0-awcc0ggoc088080gos4o04k8.tls.certresolver=letsencrypt
+traefik.http.routers.https-0-awcc0ggoc088080gos4o04k8.tls=true
+
+# Service Configuration
+traefik.http.services.http-0-awcc0ggoc088080gos4o04k8.loadbalancer.server.port=9600
+traefik.http.services.https-0-awcc0ggoc088080gos4o04k8.loadbalancer.server.port=9600
+```
+
+#### Caddy Configuration
+```
+caddy_0.encode=zstd gzip
+caddy_0.handle_path.0_reverse_proxy={{upstreams 9600}}
+caddy_0.handle_path=/*
+caddy_0.header=-Server
+caddy_0.try_files={path} /index.html /index.php
+caddy_0=https://wedding-kemash.nury.my.id
+caddy_ingress_network=coolify
+```
+
+### Features Enabled
+- HTTPS with automatic SSL certificate (Let's Encrypt)
+- HTTP to HTTPS redirection
+- Gzip compression for better performance
+- Reverse proxy configuration
+- Custom domain support
+- Load balancing ready
+- Security headers
+
+### Domain Configuration
+The application will be accessible at:
+- HTTPS: `https://wedding-kemash.nury.my.id`
+- HTTP (redirects to HTTPS): `http://wedding-kemash.nury.my.id`
+
+### Security Features
+1. Automatic HTTPS redirection
+2. SSL/TLS encryption with Let's Encrypt
+3. Gzip compression for better performance
+4. Server header removal for security
+5. Proper file handling with try_files
+
+### Performance Optimizations
+1. Gzip and Zstandard compression
+2. Proper caching headers
+3. Load balancer configuration
+4. Reverse proxy setup
+
+Remember to:
+1. Ensure DNS is properly configured for your domain
+2. Wait for SSL certificate generation (may take a few minutes)
+3. Test both HTTP and HTTPS access
+4. Verify all static assets are properly served
