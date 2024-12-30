@@ -313,7 +313,7 @@ wedding-sample-animation/
    - Use the following build configuration:
      ```
      Dockerfile Path: ./Dockerfile
-     Container Port: 80
+     Container Port: 9600
      ```
 
 3. Environment Variables:
@@ -400,7 +400,7 @@ wedding-sample-animation/
    - Connect your Git repository
    - Set the following configuration:
      ```
-     Port: 80
+     Port: 9600
      Start Command: Already configured in nixpacks.toml
      ```
 
