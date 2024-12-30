@@ -7,9 +7,123 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
-# Animated Wedding Invitation
+# Wedding Invitation Animation
 
-A beautiful, interactive wedding invitation website built with Laravel and Vue.js, featuring elegant animations and a responsive design.
+A beautiful and interactive wedding invitation web application built with Laravel, Vue.js, and GSAP animations.
+
+## Project Structure
+
+```
+wedding-sample-animation/
+├── resources/
+│   ├── js/
+│   │   ├── Pages/
+│   │   │   └── WeddingInvitation.vue    # Main wedding invitation page
+│   │   ├── components/
+│   │   │   ├── WelcomeScreen.vue        # Welcome screen with entrance animation
+│   │   │   ├── BackgroundDecorations.vue # Background flowers and butterflies
+│   │   │   ├── WeddingCountdown.vue     # Countdown timer component
+│   │   │   └── WeddingSchedule.vue      # Wedding events timeline
+│   │   ├── composables/
+│   │   │   └── useAnimations.js         # Reusable animation logic
+│   │   └── app.js                       # Main JavaScript entry point
+│   ├── css/
+│   │   └── app.css                      # Global styles
+│   └── views/
+│       └── app.blade.php                # Main Laravel view template
+├── public/
+│   └── images/
+│       ├── flower1.png                  # Decorative flower images
+│       ├── flower2.png
+│       ├── bg-flower.png
+│       └── butterfly.png
+└── package.json                         # NPM dependencies
+```
+
+## Components
+
+### WeddingInvitation.vue
+The main container component that orchestrates all sub-components and manages the overall layout.
+
+### WelcomeScreen.vue
+Handles the initial welcome screen with:
+- Elegant entrance animations
+- Couple's names display
+- Wedding date
+- Enter button with smooth transition
+
+### BackgroundDecorations.vue
+Manages all decorative elements:
+- Corner flower decorations
+- Animated floating flowers
+- Butterfly animations using GSAP
+- Responsive design for all screen sizes
+
+### WeddingCountdown.vue
+Displays a countdown timer until the wedding day:
+- Days, hours, minutes countdown
+- Animated number transitions
+- Elegant typography
+
+### WeddingSchedule.vue
+Shows the wedding event timeline:
+- Event schedule with times
+- Event descriptions
+- Animated timeline display
+
+## Animations
+
+The project uses GSAP (GreenSock Animation Platform) for smooth animations:
+- Flower floating animations
+- Butterfly path animations
+- Welcome screen transitions
+- Timeline reveal animations
+
+## Composables
+
+### useAnimations.js
+A composable that contains reusable animation logic:
+- Flower animation generation
+- Butterfly path creation
+- Background animation management
+- Animation cleanup utilities
+
+## Dependencies
+
+- Laravel - Backend framework
+- Vue.js - Frontend framework
+- GSAP - Animation library
+- Vite - Build tool
+- TailwindCSS - Utility-first CSS framework
+
+## Getting Started
+
+1. Clone the repository
+2. Install dependencies:
+```bash
+composer install
+npm install
+```
+
+3. Start the development server:
+```bash
+php artisan serve
+```
+
+4. Start the Vite development server:
+```bash
+npm run dev
+```
+
+5. Visit `http://localhost:8000` in your browser
+
+## Building for Production
+
+```bash
+npm run build
+```
+
+This will generate optimized assets in the `public/build` directory.
 
 ## Features
 
