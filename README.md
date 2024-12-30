@@ -387,7 +387,6 @@ wedding-sample-animation/
 ├── nixpacks.toml          # Nixpacks build configuration
 └── docker/               # Shared configuration files
     ├── nginx.conf        # Nginx web server configuration
-    ├── supervisord.conf  # Process management configuration
     └── php.ini          # PHP configuration for production
 ```
 
@@ -407,6 +406,10 @@ wedding-sample-animation/
 
 3. Environment Variables:
    - Copy `.env.example` to `.env`
+   - Add these additional environment variables:
+     ```
+     NIXPACKS_PKGS=openssl
+     ```
    - Update the following variables:
      ```
      APP_ENV=production
@@ -424,11 +427,11 @@ wedding-sample-animation/
 4. Build and Deploy:
    - Click "Deploy" in Coolify
    - Nixpacks will automatically:
-     - Detect PHP and Node.js requirements
-     - Install all dependencies
+     - Install PHP 8.2 with extensions
+     - Install Node.js 18
+     - Install Nginx
      - Build frontend assets
-     - Configure Nginx and PHP-FPM
-     - Set up process management
+     - Configure services
 
 ### Nixpacks Build Process
 
@@ -437,7 +440,7 @@ The Nixpacks configuration includes several phases:
 1. Setup Phase:
    - Installs PHP 8.2 with required extensions
    - Installs Node.js 18
-   - Sets up Nginx and Supervisor
+   - Sets up Nginx
 
 2. Install Phase:
    - Installs Composer dependencies
@@ -446,12 +449,18 @@ The Nixpacks configuration includes several phases:
 
 3. Setup Nginx Phase:
    - Configures Nginx web server
-   - Sets up PHP-FPM
-   - Configures process management
+   - Sets up PHP-FPM configuration
 
 4. Setup Permissions Phase:
    - Sets correct permissions for Laravel storage
    - Ensures proper file ownership
+
+### Process Management
+
+The application runs with:
+- PHP-FPM for PHP processing
+- Nginx for web serving
+- Both services managed directly by the container
 
 ### Advantages of Nixpacks
 
@@ -461,22 +470,3 @@ The Nixpacks configuration includes several phases:
 - Smaller image sizes
 - Faster build times
 - Built-in caching
-- Zero-configuration option available
-
-### Monitoring and Logs
-
-Access logs through Coolify's dashboard:
-- Application logs
-- Nginx access and error logs
-- PHP-FPM logs
-- Build logs
-
-### Troubleshooting
-
-If you encounter issues:
-1. Check the build logs in Coolify
-2. Verify environment variables
-3. Ensure all required PHP extensions are listed in nixpacks.toml
-4. Check file permissions in the storage directory
-
-For more details on Nixpacks configuration options, visit the [Nixpacks documentation](https://nixpacks.com/docs).
