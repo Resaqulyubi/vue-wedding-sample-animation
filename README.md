@@ -283,3 +283,95 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+## Deployment with Coolify
+
+This project includes Docker configuration for easy deployment with Coolify.
+
+### Docker Configuration Files
+
+```
+wedding-sample-animation/
+├── Dockerfile              # Multi-stage build for production
+├── .dockerignore          # Files to exclude from Docker build
+└── docker/
+    ├── nginx.conf         # Nginx web server configuration
+    ├── supervisord.conf   # Process management configuration
+    └── php.ini            # PHP configuration for production
+```
+
+### Deployment Steps
+
+1. Push your code to a Git repository
+
+2. In Coolify:
+   - Create a new service
+   - Select "Docker" as deployment type
+   - Connect your Git repository
+   - Use the following build configuration:
+     ```
+     Dockerfile Path: ./Dockerfile
+     Container Port: 80
+     ```
+
+3. Environment Variables:
+   - Copy `.env.example` to `.env`
+   - Update the following variables:
+     ```
+     APP_ENV=production
+     APP_DEBUG=false
+     APP_URL=your-domain.com
+     
+     DB_CONNECTION=mysql
+     DB_HOST=your-db-host
+     DB_PORT=3306
+     DB_DATABASE=your-db-name
+     DB_USERNAME=your-username
+     DB_PASSWORD=your-password
+     ```
+
+4. Build and Deploy:
+   - Click "Deploy" in Coolify
+   - Wait for the build and deployment process to complete
+   - Your app will be available at the configured domain
+
+### Docker Image Details
+
+The Docker configuration uses a multi-stage build process:
+
+1. Build Stage:
+   - Uses Node.js to build frontend assets
+   - Compiles and optimizes all Vue.js components
+   - Generates production-ready assets
+
+2. Production Stage:
+   - Uses PHP 8.2 with FPM on Alpine Linux
+   - Includes Nginx as web server
+   - Uses Supervisor for process management
+   - Optimized for production performance
+   - Includes caching and compression
+
+### Production Optimizations
+
+- Static file caching (30 days)
+- Gzip compression for text files
+- PHP OPcache enabled
+- Optimized PHP-FPM configuration
+- Nginx performance tuning
+- Supervisor process management
+
+### Monitoring and Logs
+
+Access logs through Coolify's dashboard:
+- Nginx access and error logs
+- PHP-FPM logs
+- Supervisor process logs
+
+### Scaling
+
+The Docker configuration is designed to be scalable:
+- Stateless application design
+- Optimized for container orchestration
+- Ready for horizontal scaling
+
+For any deployment issues, check the Coolify logs and ensure all environment variables are properly configured.
