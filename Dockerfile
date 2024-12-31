@@ -26,21 +26,30 @@ RUN apt-get update && apt-get install -y \
     libpng-dev \
     libzip-dev \
     supervisor \
+    nginx \
     && docker-php-ext-install pdo_pgsql \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install gd \
     && docker-php-ext-install zip
 
 # Create necessary directories and set permissions
-RUN mkdir -p /var/log/supervisor /var/log/nginx /var/log/php-fpm \
+RUN mkdir -p /var/log/supervisor /var/log/nginx /var/log/php-fpm /run/nginx \
     && chown -R www-data:www-data /var/log/supervisor /var/log/nginx /var/log/php-fpm \
     && chmod -R 755 /var/log/supervisor /var/log/nginx /var/log/php-fpm
 
 # Copy application files and configurations
 COPY --chown=www-data:www-data . /var/www/html
+
+# Copy nginx configurations
+COPY docker/nginx/nginx.conf /etc/nginx/nginx.conf
 COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
-COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+# Copy PHP-FPM configuration
+COPY docker/php/www.conf /usr/local/etc/php-fpm.d/www.conf
 COPY docker/php.ini /usr/local/etc/php/conf.d/custom.ini
+
+# Copy supervisor configuration
+COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # Create custom error page
 RUN echo '<html><body><h1>502 Bad Gateway</h1><p>The application is currently unavailable. Please try again later.</p></body></html>' > /var/www/html/public/502.html
@@ -69,6 +78,9 @@ USER root
 # Enable error logging for PHP
 RUN echo "log_errors = On" >> /usr/local/etc/php/conf.d/error-logging.ini && \
     echo "error_log = /var/log/php-fpm/php-error.log" >> /usr/local/etc/php/conf.d/error-logging.ini
+
+# Verify nginx configuration
+RUN nginx -t
 
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
 
