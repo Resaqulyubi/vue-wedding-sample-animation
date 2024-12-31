@@ -16,7 +16,7 @@ ENV NGINX_PHP_FPM_TIMEOUT=60s
 
 USER root
 
-# Install Node.js
+# Install Node.js and system dependencies
 RUN curl -sL https://deb.nodesource.com/setup_20.x | bash -
 RUN apt-get update && apt-get install -y \
     nodejs \
@@ -30,6 +30,10 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-install gd \
     && docker-php-ext-install zip
 
+# Create necessary directories and set permissions
+RUN mkdir -p /var/log/supervisor /var/log/nginx /var/log/php-fpm \
+    && chown -R www-data:www-data /var/log/supervisor /var/log/nginx /var/log/php-fpm
+
 # Copy application files
 COPY --chown=www-data:www-data . /var/www/html
 COPY --from=build-stage /app/public/build /var/www/html/public/build
@@ -37,22 +41,15 @@ COPY --from=build-stage /app/public/build /var/www/html/public/build
 # Set working directory
 WORKDIR /var/www/html
 
+# Set proper permissions
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
+    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+
+# Switch to www-data user for application operations
 USER www-data
 
 # Install dependencies and build assets
 RUN composer install --no-interaction --optimize-autoloader --no-dev
-
-# Switch back to non-root user
-USER www-data
-
-# Set permissions
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
-RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
-
-# Create log directories
-RUN mkdir -p /var/log/supervisor
-RUN mkdir -p /var/log/nginx
-RUN mkdir -p /var/log/php-fpm
 
 # Set up Gzip compression
 RUN echo "gzip on;" > /etc/nginx/conf.d/gzip.conf && \
