@@ -30,10 +30,10 @@ RUN apt-get update && apt-get install -y \
     supervisor \
     nginx \
     sqlite3 \
-    && docker-php-ext-install pdo_pgsql pdo_sqlite \
+    libsqlite3-dev \
+    pkg-config \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install gd \
-    && docker-php-ext-install zip
+    && docker-php-ext-install gd zip pdo_pgsql pdo_sqlite
 
 # Create necessary directories and set permissions
 RUN mkdir -p /var/log/supervisor /var/log/nginx /var/log/php-fpm /run/nginx \
