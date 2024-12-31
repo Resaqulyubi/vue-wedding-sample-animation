@@ -40,21 +40,25 @@ COPY --chown=www-data:www-data . /var/www/html
 COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
 COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY docker/php.ini /usr/local/etc/php/conf.d/custom.ini
-COPY --from=build-stage /app/public/build /var/www/html/public/build
 
 # Set working directory
 WORKDIR /var/www/html
 
-# Set proper permissions
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
-    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+# Ensure proper permissions and create build directory
+RUN mkdir -p public/build \
+    && chown -R www-data:www-data . \
+    && chmod -R 775 . \
+    && chmod -R 775 public/build \
+    && chown -R www-data:www-data public/build
 
-# Switch to www-data user for application operations
 USER www-data
 
-# Install dependencies and build assets
+# Install PHP dependencies
 RUN composer install --no-interaction --optimize-autoloader --no-dev
-RUN npm install && npm run build
+
+# Install and build frontend assets
+RUN npm ci
+RUN npm run build
 
 USER root
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
