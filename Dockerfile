@@ -7,43 +7,47 @@ COPY . .
 RUN npm run build
 
 # Production stage
-FROM php:8.2-fpm-alpine
+FROM serversideup/php:8.2-fpm-nginx
 
-# Install system dependencies
-RUN apk add --no-cache \
-    nginx \
-    supervisor \
-    curl \
+ENV PHP_OPCACHE_ENABLE=1
+ENV NGINX_ROOT=/var/www/html/public
+ENV NGINX_CLIENT_MAX_BODY_SIZE=100M
+ENV NGINX_PHP_FPM_TIMEOUT=60s
+
+USER root
+
+# Install Node.js
+RUN curl -sL https://deb.nodesource.com/setup_20.x | bash -
+RUN apt-get update && apt-get install -y \
+    nodejs \
+    libpq-dev \
+    libfreetype6-dev \
+    libjpeg62-turbo-dev \
     libpng-dev \
     libzip-dev \
-    zip \
-    unzip \
-    openssl
-
-# Install PHP extensions
-RUN docker-php-ext-install pdo_mysql zip exif pcntl gd
-
-# Install composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
-
-# Set working directory
-WORKDIR /var/www
+    && docker-php-ext-install pdo_pgsql \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install gd \
+    && docker-php-ext-install zip
 
 # Copy application files
-COPY . /var/www/
-COPY --from=build-stage /app/public/build /var/www/public/build
+COPY --chown=www-data:www-data . /var/www/html
+COPY --from=build-stage /app/public/build /var/www/html/public/build
 
-# Copy configuration files
-COPY docker/nginx.conf /etc/nginx/http.d/default.conf
-COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-COPY docker/php.ini /usr/local/etc/php/conf.d/custom.ini
+# Set working directory
+WORKDIR /var/www/html
 
-# Install application dependencies
-RUN composer install --no-dev --optimize-autoloader --no-interaction
+USER www-data
+
+# Install dependencies and build assets
+RUN composer install --no-interaction --optimize-autoloader --no-dev
+
+# Switch back to non-root user
+USER www-data
 
 # Set permissions
-RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
-RUN chmod -R 775 /var/www/storage /var/www/bootstrap/cache
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
 # Create log directories
 RUN mkdir -p /var/log/supervisor
@@ -68,10 +72,10 @@ LABEL traefik.enable="true" \
     traefik.http.routers.https-0-awcc0ggoc088080gos4o04k8.service="https-0-awcc0ggoc088080gos4o04k8" \
     traefik.http.routers.https-0-awcc0ggoc088080gos4o04k8.tls.certresolver="letsencrypt" \
     traefik.http.routers.https-0-awcc0ggoc088080gos4o04k8.tls="true" \
-    traefik.http.services.http-0-awcc0ggoc088080gos4o04k8.loadbalancer.server.port="9600" \
-    traefik.http.services.https-0-awcc0ggoc088080gos4o04k8.loadbalancer.server.port="9600" \
+    traefik.http.services.http-0-awcc0ggoc088080gos4o04k8.loadbalancer.server.port="80" \
+    traefik.http.services.https-0-awcc0ggoc088080gos4o04k8.loadbalancer.server.port="80" \
     caddy_0.encode="zstd gzip" \
-    caddy_0.handle_path.0_reverse_proxy="{{upstreams 9600}}" \
+    caddy_0.handle_path.0_reverse_proxy="{{upstreams 80}}" \
     caddy_0.handle_path="/*" \
     caddy_0.header="-Server" \
     caddy_0.try_files="{path} /index.html /index.php" \
@@ -79,7 +83,7 @@ LABEL traefik.enable="true" \
     caddy_ingress_network="coolify"
 
 # Expose port
-EXPOSE 9600
+EXPOSE 80
 
 # Start supervisor
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
