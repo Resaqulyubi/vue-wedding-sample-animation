@@ -13,6 +13,8 @@ ENV PHP_OPCACHE_ENABLE=1
 ENV NGINX_ROOT=/var/www/html/public
 ENV NGINX_CLIENT_MAX_BODY_SIZE=100M
 ENV NGINX_PHP_FPM_TIMEOUT=300s
+ENV DB_CONNECTION=sqlite
+ENV DB_DATABASE=/var/www/html/database/database.sqlite
 
 USER root
 
@@ -27,7 +29,8 @@ RUN apt-get update && apt-get install -y \
     libzip-dev \
     supervisor \
     nginx \
-    && docker-php-ext-install pdo_pgsql \
+    sqlite3 \
+    && docker-php-ext-install pdo_pgsql pdo_sqlite \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install gd \
     && docker-php-ext-install zip
@@ -57,6 +60,12 @@ RUN echo '<html><body><h1>502 Bad Gateway</h1><p>The application is currently un
 # Set working directory
 WORKDIR /var/www/html
 
+# Setup SQLite database
+RUN mkdir -p database \
+    && touch database/database.sqlite \
+    && chown -R www-data:www-data database \
+    && chmod -R 775 database
+
 # Ensure proper permissions and create build directory
 RUN mkdir -p public/build \
     && chown -R www-data:www-data . \
@@ -72,6 +81,9 @@ RUN composer install --no-interaction --optimize-autoloader --no-dev
 # Install and build frontend assets
 RUN npm ci
 RUN npm run build
+
+# Run database migrations
+RUN php artisan migrate --force
 
 USER root
 
