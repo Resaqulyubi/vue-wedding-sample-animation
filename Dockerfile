@@ -12,7 +12,7 @@ FROM serversideup/php:8.2-fpm-nginx
 ENV PHP_OPCACHE_ENABLE=1
 ENV NGINX_ROOT=/var/www/html/public
 ENV NGINX_CLIENT_MAX_BODY_SIZE=100M
-ENV NGINX_PHP_FPM_TIMEOUT=60s
+ENV NGINX_PHP_FPM_TIMEOUT=300s
 
 USER root
 
@@ -33,13 +33,17 @@ RUN apt-get update && apt-get install -y \
 
 # Create necessary directories and set permissions
 RUN mkdir -p /var/log/supervisor /var/log/nginx /var/log/php-fpm \
-    && chown -R www-data:www-data /var/log/supervisor /var/log/nginx /var/log/php-fpm
+    && chown -R www-data:www-data /var/log/supervisor /var/log/nginx /var/log/php-fpm \
+    && chmod -R 755 /var/log/supervisor /var/log/nginx /var/log/php-fpm
 
 # Copy application files and configurations
 COPY --chown=www-data:www-data . /var/www/html
 COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
 COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY docker/php.ini /usr/local/etc/php/conf.d/custom.ini
+
+# Create custom error page
+RUN echo '<html><body><h1>502 Bad Gateway</h1><p>The application is currently unavailable. Please try again later.</p></body></html>' > /var/www/html/public/502.html
 
 # Set working directory
 WORKDIR /var/www/html
@@ -61,6 +65,11 @@ RUN npm ci
 RUN npm run build
 
 USER root
+
+# Enable error logging for PHP
+RUN echo "log_errors = On" >> /usr/local/etc/php/conf.d/error-logging.ini && \
+    echo "error_log = /var/log/php-fpm/php-error.log" >> /usr/local/etc/php/conf.d/error-logging.ini
+
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
 
 EXPOSE 9600
